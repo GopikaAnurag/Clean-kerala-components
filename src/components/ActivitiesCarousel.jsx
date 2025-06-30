@@ -52,13 +52,13 @@ const ActivitiesCarousel = ({ items, settings }) => {
 
       <div
         onClick={() => scroll("left")}
-        className="absolute left-18 top-1/2 -translate-y-1/2 z-10 text-sm md:text-base font-bold text-gray-400 hover:text-black cursor-pointer select-none"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-sm md:text-base font-bold text-gray-400 hover:text-black cursor-pointer select-none"
       >
         &lt;
       </div>
       <div
         onClick={() => scroll("right")}
-        className="absolute right-18 top-1/2 -translate-y-1/2 z-10 text-sm md:text-base font-bold text-gray-400 hover:text-black cursor-pointer select-none"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-sm md:text-base font-bold text-gray-400 hover:text-black cursor-pointer select-none"
       >
         &gt;
       </div>
@@ -95,7 +95,7 @@ const ActivitiesCarousel = ({ items, settings }) => {
                 </p>
 
                 {index !== 0 && (
-                  <button className="mt-auto text-xs md:text-sm font-semibold text-white py-1 px-3 rounded-md bg-green-600 hover:bg-green-700 transition">
+                  <button className="mt-auto text-[10px] sm:text-xs md:text-sm lg:text-base font-semibold text-white py-1 px-3 rounded-md bg-green-600 hover:bg-green-700 transition whitespace-nowrap">
                     Know More
                   </button>
                 )}

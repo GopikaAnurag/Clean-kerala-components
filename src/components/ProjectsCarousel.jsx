@@ -19,7 +19,7 @@ const ProjectsCarousel = ({ projects, settings }) => {
     const updateWidth = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        const slideW = containerWidth / 3.4; // 3.4 slides visible
+        const slideW = containerWidth / 3.8; // 3.4 slides visible
         setSlideWidth(slideW);
       }
     };

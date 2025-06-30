@@ -19,7 +19,7 @@ const ActivitiesCarousel = ({ items, settings }) => {
     const updateWidth = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        const slideW = containerWidth / 3.8;
+        const slideW = containerWidth / 3.2;
         setSlideWidth(slideW);
       }
     };

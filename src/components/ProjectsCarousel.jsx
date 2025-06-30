@@ -1,22 +1,35 @@
 import React, { useRef, useEffect, useState } from "react";
 
 const ProjectsCarousel = ({ projects, settings }) => {
+  const containerRef = useRef(null);
   const scrollRef = useRef(null);
   const [progress, setProgress] = useState(0);
+  const [slideWidth, setSlideWidth] = useState(0);
 
   const scroll = (dir) => {
     if (scrollRef.current) {
       scrollRef.current.scrollBy({
-        left: dir === "left" ? -settings.slideWidth : settings.slideWidth,
+        left: dir === "left" ? -slideWidth : slideWidth,
         behavior: "smooth",
       });
     }
   };
 
-  // Track scroll progress
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const slideW = containerWidth / 3.4; // 3.4 slides visible
+        setSlideWidth(slideW);
+      }
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
   useEffect(() => {
     const ref = scrollRef.current;
-
     const handleScroll = () => {
       const maxScroll = ref.scrollWidth - ref.clientWidth;
       const percent = (ref.scrollLeft / maxScroll) * 100;
@@ -30,20 +43,25 @@ const ProjectsCarousel = ({ projects, settings }) => {
   }, []);
 
   return (
-    <section className="w-full relative bg-[#f0fdf4] pl-20 pr-20">
+    <section
+      ref={containerRef}
+      className="w-full relative bg-[#f0fdf4] py-6 px-4 md:px-20"
+    >
       {/* Title */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center ">OUR PROJECTS</h2>
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 text-center">
+        OUR PROJECTS
+      </h2>
 
       {/* Arrows */}
       <div
         onClick={() => scroll("left")}
-        className="absolute left-18 top-1/2 -translate-y-1/2 z-10 text-base font-bold text-gray-500 hover:text-black cursor-pointer select-none"
+        className="absolute left-18 top-1/2 -translate-y-1/2 z-10 text-sm md:text-base font-bold text-gray-500 hover:text-black cursor-pointer select-none"
       >
         &lt;
       </div>
       <div
         onClick={() => scroll("right")}
-        className="absolute right-18 top-1/2 -translate-y-1/2 z-10 text-base font-bold text-gray-500 hover:text-black cursor-pointer select-none"
+        className="absolute right-18 top-1/2 -translate-y-1/2 z-10 text-sm md:text-base font-bold text-gray-500 hover:text-black cursor-pointer select-none"
       >
         &gt;
       </div>
@@ -51,7 +69,7 @@ const ProjectsCarousel = ({ projects, settings }) => {
       {/* Scrollable Project Cards */}
       <div
         ref={scrollRef}
-        className="overflow-x-auto scroll-smooth no-scrollbar px-8 "
+        className="overflow-x-auto scroll-smooth no-scrollbar px-1 md:px-4"
         style={{ scrollSnapType: "x mandatory" }}
       >
         <div className="flex gap-4 w-max">
@@ -60,26 +78,27 @@ const ProjectsCarousel = ({ projects, settings }) => {
               key={index}
               className="relative flex-shrink-0 rounded-xl overflow-hidden"
               style={{
-                width: `${settings.slideWidth}px`,
-                height: `${settings.slideHeight}px`,
+                width: `${slideWidth}px`,
                 scrollSnapAlign: "start",
                 backgroundColor: project.bgColor || "#f0f0f0",
               }}
             >
-              <img
-                src={project.image}
-                alt={project.title}
-                className="w-full h-full object-cover transition-opacity duration-300 rounded-2xl object-cover"
-                style={{ display: "block" }}
-                onError={(e) => {
-                  e.target.style.opacity = 0.1;
-                }}
-              />
+              <div className="w-full h-48 sm:h-64 md:h-72 lg:h-80">
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="w-full h-full object-cover transition-opacity duration-300 rounded-2xl"
+                  onError={(e) => {
+                    e.target.style.opacity = 0.1;
+                  }}
+                />
+              </div>
               <div
-                className={`absolute inset-0 bg-opacity-40 flex ${index % 2 === 0 ? "items-end" : "items-start"
-                  } p-3`}
+                className={`absolute inset-0 bg-opacity-40 flex ${
+                  index % 2 === 0 ? "items-end" : "items-start"
+                } p-2 md:p-3`}
               >
-                <h3 className="text-white text-2xl font-semibold text-center w-full">
+                <h3 className="text-white text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-center w-full">
                   {project.title}
                 </h3>
               </div>

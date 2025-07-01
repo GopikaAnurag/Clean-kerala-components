@@ -6,9 +6,11 @@ const ActivitiesCarousel = ({ items, settings }) => {
   const [progress, setProgress] = useState(0);
   const [slideWidth, setSlideWidth] = useState(0);
   const [slideHeight, setSlideHeight] = useState(0);
+  const [fontScale, setFontScale] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [isActive, setIsActive] = useState(false); // 👈 For hover control
 
   const aspectRatio = settings.slideHeight / settings.slideWidth;
 
@@ -30,15 +32,18 @@ const ActivitiesCarousel = ({ items, settings }) => {
         else if (window.innerWidth < 768) targetSlides = 2.3;
 
         const newWidth = containerWidth / targetSlides;
+        const scale = newWidth / settings.slideWidth;
+
         setSlideWidth(newWidth);
         setSlideHeight(newWidth * aspectRatio);
+        setFontScale(scale);
       }
     };
 
     updateSize();
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
-  }, [aspectRatio]);
+  }, [aspectRatio, settings.slideWidth]);
 
   useEffect(() => {
     const ref = scrollRef.current;
@@ -52,6 +57,7 @@ const ActivitiesCarousel = ({ items, settings }) => {
     return () => ref?.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 🖱️ Mouse Drag Scroll
   useEffect(() => {
     const slider = scrollRef.current;
     if (!slider) return;
@@ -89,28 +95,45 @@ const ActivitiesCarousel = ({ items, settings }) => {
     };
   }, [isDragging, startX, scrollLeft]);
 
-  // 🔑 Arrow key scroll
+  // 🧭 Scroll by WHEEL (only when hovered)
   useEffect(() => {
+    const slider = scrollRef.current;
+    if (!slider || !isActive) return;
+
+    const handleWheel = (e) => {
+      e.preventDefault();
+      const scrollAmount = e.deltaY || e.deltaX;
+      slider.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    };
+
+    slider.addEventListener("wheel", handleWheel, { passive: false });
+    return () => slider.removeEventListener("wheel", handleWheel);
+  }, [isActive]);
+
+  // ⌨️ Scroll by Arrow Keys (only when hovered)
+  useEffect(() => {
+    if (!isActive) return;
+
     const handleKeyDown = (e) => {
       if (e.key === "ArrowLeft") scroll("left");
       if (e.key === "ArrowRight") scroll("right");
     };
 
-    const container = containerRef.current;
-    if (container) {
-      container.setAttribute("tabindex", "0");
-      container.addEventListener("keydown", handleKeyDown);
-    }
-
-    return () => container?.removeEventListener("keydown", handleKeyDown);
-  }, [slideWidth]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isActive]);
 
   return (
     <section
       ref={containerRef}
+      onMouseEnter={() => setIsActive(true)}
+      onMouseLeave={() => setIsActive(false)}
       className="w-full relative overflow-visible bg-[#f0fdf4] py-3 px-2 md:px-12 outline-none"
     >
-      <h2 className="text-xs sm:text-sm md:text-base lg:text-xl font-bold text-gray-800 mb-3 text-center">
+      <h2
+        className="font-bold text-gray-800 mb-3 text-center"
+        style={{ fontSize: `${1 * fontScale}rem` }}
+      >
         Activities at a Glance
       </h2>
 
@@ -128,7 +151,6 @@ const ActivitiesCarousel = ({ items, settings }) => {
         &gt;
       </div>
 
-      {/* Scroll Area */}
       <div
         ref={scrollRef}
         className="cursor-grab active:cursor-grabbing overflow-x-auto scroll-smooth no-scrollbar px-1 sm:px-3"
@@ -159,15 +181,28 @@ const ActivitiesCarousel = ({ items, settings }) => {
                 style={{ height: "100%" }}
               >
                 <div>
-                  <h3 className="text-green-700 font-bold text-sm sm:text-base md:text-lg">
+                  <h3
+                    className="text-green-700 font-bold"
+                    style={{ fontSize: `${1 * fontScale}rem` }}
+                  >
                     {item.value}
                   </h3>
-                  <p className="text-green-800 text-xs sm:text-sm md:text-base">
+                  <p
+                    className="text-green-800"
+                    style={{ fontSize: `${0.85 * fontScale}rem` }}
+                  >
                     {item.label}
                   </p>
                 </div>
 
-                <button className="text-[10px] sm:text-xs md:text-sm font-semibold text-white py-1 px-2 rounded bg-green-600 hover:bg-green-700 transition whitespace-nowrap">
+                <button
+                  className="text-white rounded bg-green-600 hover:bg-green-700 transition whitespace-nowrap"
+                  style={{
+                    fontSize: `${0.7 * fontScale}rem`,
+                    padding: `${0.3 * fontScale}rem ${0.6 * fontScale}rem`,
+                    fontWeight: 600,
+                  }}
+                >
                   Know More
                 </button>
               </div>

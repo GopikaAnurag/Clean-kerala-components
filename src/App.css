@@ -40,3 +40,18 @@
 .read-the-docs {
   color: #888;
 }
+h1 {
+  font-size: 1.6rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+/* body {
+  overflow-y: hidden;
+} */

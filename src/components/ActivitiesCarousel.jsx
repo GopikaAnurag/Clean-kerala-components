@@ -5,9 +5,12 @@ const ActivitiesCarousel = ({ items, settings }) => {
   const scrollRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [slideWidth, setSlideWidth] = useState(0);
+  const [slideHeight, setSlideHeight] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  const aspectRatio = settings.slideHeight / settings.slideWidth;
 
   const scroll = (dir) => {
     if (scrollRef.current) {
@@ -19,26 +22,23 @@ const ActivitiesCarousel = ({ items, settings }) => {
   };
 
   useEffect(() => {
-    const updateWidth = () => {
+    const updateSize = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        let targetSlideCount;
-        if (window.innerWidth < 640) {
-          targetSlideCount = 1.8;
-        } else if (window.innerWidth < 768) {
-          targetSlideCount = 2.3;
-        } else {
-          targetSlideCount = 2.8;
-        }
-        const newSlideWidth = containerWidth / targetSlideCount;
-        setSlideWidth(newSlideWidth);
+        let targetSlides = 2.8;
+        if (window.innerWidth < 640) targetSlides = 1.8;
+        else if (window.innerWidth < 768) targetSlides = 2.3;
+
+        const newWidth = containerWidth / targetSlides;
+        setSlideWidth(newWidth);
+        setSlideHeight(newWidth * aspectRatio);
       }
     };
 
-    updateWidth();
-    window.addEventListener("resize", updateWidth);
-    return () => window.removeEventListener("resize", updateWidth);
-  }, []);
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, [aspectRatio]);
 
   useEffect(() => {
     const ref = scrollRef.current;
@@ -48,12 +48,8 @@ const ActivitiesCarousel = ({ items, settings }) => {
       setProgress(percentage);
     };
 
-    if (ref) {
-      ref.addEventListener("scroll", handleScroll);
-    }
-    return () => {
-      if (ref) ref.removeEventListener("scroll", handleScroll);
-    };
+    ref?.addEventListener("scroll", handleScroll);
+    return () => ref?.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -65,11 +61,6 @@ const ActivitiesCarousel = ({ items, settings }) => {
       setStartX(e.pageX - slider.offsetLeft);
       setScrollLeft(slider.scrollLeft);
       slider.classList.add("select-none");
-    };
-
-    const handleMouseLeave = () => {
-      setIsDragging(false);
-      slider.classList.remove("select-none");
     };
 
     const handleMouseUp = () => {
@@ -86,40 +77,62 @@ const ActivitiesCarousel = ({ items, settings }) => {
     };
 
     slider.addEventListener("mousedown", handleMouseDown);
-    slider.addEventListener("mouseleave", handleMouseLeave);
+    slider.addEventListener("mouseleave", handleMouseUp);
     slider.addEventListener("mouseup", handleMouseUp);
     slider.addEventListener("mousemove", handleMouseMove);
 
     return () => {
       slider.removeEventListener("mousedown", handleMouseDown);
-      slider.removeEventListener("mouseleave", handleMouseLeave);
+      slider.removeEventListener("mouseleave", handleMouseUp);
       slider.removeEventListener("mouseup", handleMouseUp);
       slider.removeEventListener("mousemove", handleMouseMove);
     };
   }, [isDragging, startX, scrollLeft]);
 
+  // 🔑 Arrow key scroll
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft") scroll("left");
+      if (e.key === "ArrowRight") scroll("right");
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.setAttribute("tabindex", "0");
+      container.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => container?.removeEventListener("keydown", handleKeyDown);
+  }, [slideWidth]);
+
   return (
-    <section ref={containerRef} className="w-full relative overflow-visible bg-[#f0fdf4] py-3 px-2 md:px-12">
+    <section
+      ref={containerRef}
+      className="w-full relative overflow-visible bg-[#f0fdf4] py-3 px-2 md:px-12 outline-none"
+    >
       <h2 className="text-xs sm:text-sm md:text-base lg:text-xl font-bold text-gray-800 mb-3 text-center">
         Activities at a Glance
       </h2>
 
+      {/* Arrows */}
       <div
         onClick={() => scroll("left")}
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 text-[10px] sm:text-xs md:text-sm font-bold text-gray-400 hover:text-black cursor-pointer select-none"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 text-sm font-bold text-gray-400 hover:text-black cursor-pointer select-none"
       >
         &lt;
       </div>
       <div
         onClick={() => scroll("right")}
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-[10px] sm:text-xs md:text-sm font-bold text-gray-400 hover:text-black cursor-pointer select-none"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-sm font-bold text-gray-400 hover:text-black cursor-pointer select-none"
       >
         &gt;
       </div>
 
+      {/* Scroll Area */}
       <div
         ref={scrollRef}
-        className="cursor-grab active:cursor-grabbing overflow-x-auto overflow-visible scroll-smooth no-scrollbar px-1 sm:px-3"
+        className="cursor-grab active:cursor-grabbing overflow-x-auto scroll-smooth no-scrollbar px-1 sm:px-3"
+        style={{ scrollSnapType: "x mandatory" }}
       >
         <div className="flex gap-2 w-max">
           {items.map((item, index) => (
@@ -128,40 +141,42 @@ const ActivitiesCarousel = ({ items, settings }) => {
               className="flex-shrink-0 flex rounded-md shadow-sm overflow-hidden select-none"
               style={{
                 width: `${slideWidth}px`,
+                height: `${slideHeight}px`,
                 scrollSnapAlign: "start",
-                background: "linear-gradient(135deg, #e6f4ea 0%, #ffffff 100%)",
+                backgroundColor: item.bgColor || "#E6F4EA",
+                transition: "width 0.3s ease, height 0.3s ease",
               }}
             >
-              <div className="w-3/5 h-32 sm:h-36 md:h-40 lg:h-44">
+              <div style={{ width: "55%", height: "100%" }}>
                 <img
                   src={item.image}
                   alt={item.label}
-                  className="w-full h-full object-cover p-1 rounded-lg pointer-events-none"
+                  className="w-full h-full object-contain p-2 rounded-md"
                 />
               </div>
               <div
-                className={`w-2/5 flex flex-col items-start p-1 space-y-1 ${
-                  index === 0 ? "justify-start" : "justify-center"
-                }`}
+                className="w-2/5 flex flex-col items-start p-2 space-y-1 justify-between"
+                style={{ height: "100%" }}
               >
-                <h3 className="text-[10px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold text-green-700">
-                  {item.value}
-                </h3>
-                <p className="text-[9px] sm:text-[10px] md:text-sm lg:text-base text-green-800">
-                  {item.label}
-                </p>
+                <div>
+                  <h3 className="text-green-700 font-bold text-sm sm:text-base md:text-lg">
+                    {item.value}
+                  </h3>
+                  <p className="text-green-800 text-xs sm:text-sm md:text-base">
+                    {item.label}
+                  </p>
+                </div>
 
-                {index !== 0 && (
-                  <button className="mt-auto text-[9px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-semibold text-white py-0.5 px-2 rounded bg-green-600 hover:bg-green-700 transition whitespace-nowrap">
-                    Know More
-                  </button>
-                )}
+                <button className="text-[10px] sm:text-xs md:text-sm font-semibold text-white py-1 px-2 rounded bg-green-600 hover:bg-green-700 transition whitespace-nowrap">
+                  Know More
+                </button>
               </div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Progress Bar */}
       <div className="h-1 bg-gray-200 mt-2 mx-4 rounded">
         <div
           className="h-1 bg-green-700 rounded"

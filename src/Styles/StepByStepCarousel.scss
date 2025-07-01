@@ -1,0 +1,150 @@
+.step-carousel {
+  padding: 2rem;
+
+  .step-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    .subtitle {
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      color: #2563eb;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #1e293b;
+      margin-top: 0.25rem;
+    }
+  }
+
+  .keen-slider {
+    overflow: hidden;
+  }
+
+  .step-slide {
+    display: flex;
+    justify-content: center;
+  }
+
+  .step-card {
+    background: white;
+    display: flex;
+    flex-direction: column;
+    border-radius: 1rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 100%;
+    max-width: 700px;
+    position: relative;
+
+    &.row-layout {
+      flex-direction: row;
+
+      .step-image {
+        width: 45%;
+        height: auto;
+        object-fit: cover;
+      }
+
+      .step-content {
+        flex: 1;
+        padding: 1.25rem;
+        position: relative;
+      }
+    }
+  }
+
+  .step-label {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #2563eb;
+
+    .icon {
+      color: #2563eb;
+    }
+  }
+
+  .step-content h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+  }
+
+  .step-content p {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: #475569;
+  }
+
+  .step-content ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .step-content li {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+  }
+
+  .check-icon {
+    color: #3b82f6;
+    margin-right: 0.5rem;
+  }
+
+  .line-slider-wrapper {
+    width: 100%;
+    max-width: 700px;
+    margin: 1.5rem auto 0;
+
+    .line-slider-bg {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .line-slider-fill {
+      height: 100%;
+      background: #2563eb;
+      transition: width 0.3s ease;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .step-card.row-layout {
+      flex-direction: column;
+
+      .step-image {
+        width: 100%;
+        height: 200px;
+      }
+
+      .step-content {
+        padding: 1rem;
+      }
+    }
+
+    .title {
+      font-size: 1.4rem;
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+    }
+  }
+}

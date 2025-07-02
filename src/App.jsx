@@ -1,3 +1,4 @@
+// src/App.jsx
 import React from "react";
 import ActivitiesCarousel from "./components/ActivitiesCarousel";
 import ProjectsCarousel from "./components/ProjectsCarousel";
@@ -9,34 +10,32 @@ import {
   ourProjects,
   ourProjectsCarouselSettings,
   steps,
-  carouselSettings,
+  stepByStepCarouselSettings,
 } from "./data/Carouseldata";
 
 function App() {
   return (
-    <div className="min-h-screen bg-white px-6 py-10 space-y-16 text-left">
-      <div className="max-w-7xl mx-auto space-y-12">
-        {/* Activities at a Glance */}
-        <ActivitiesCarousel
-          items={activitiesAtGlance}
-          settings={activitiesAtGlanceSettings}
-        />
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <div className="w-full">
+        {/* Removed the <h1> heading here as requested */}
 
-        {/* Our Projects Carousel */}
-        <ProjectsCarousel
-          projects={ourProjects}
-          settings={ourProjectsCarouselSettings}
-        />
+        <section className="my-12">
+          <ActivitiesCarousel items={activitiesAtGlance} settings={activitiesAtGlanceSettings} />
+        </section>
 
-        {/* Step-by-Step Process Carousel */}
-        <StepByStepCarousel
-          steps={steps}
-          carouselSettings={carouselSettings}
-        />
-        <StepByStepCarousel
-          steps={steps}
-          carouselSettings={carouselSettings}
-        />
+        <section className="my-12">
+          <ProjectsCarousel projects={ourProjects} settings={ourProjectsCarouselSettings} />
+        </section>
+
+        <section className="my-12">
+          <StepByStepCarousel steps={steps} carouselSettings={stepByStepCarouselSettings} title="Our Process" />
+        </section>
+
+        <section className="my-12">
+          <StepByStepCarousel steps={steps} carouselSettings={stepByStepCarouselSettings} title="Our Process" />
+        </section>
+
+        {/* Add more sections or components as needed */}
       </div>
     </div>
   );

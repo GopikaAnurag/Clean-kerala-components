@@ -1,6 +1,9 @@
+// src/components/StepByStepCarosel.js
 import { useRef, useEffect, useState } from "react";
 import { FaFileAlt, FaCheckCircle } from "react-icons/fa";
-import "../App.css";
+// Ensure this path is correct if you have global CSS
+// If you're using Tailwind's no-scrollbar plugin, you might not need this line
+// import "../App.css"; // Assuming this is not needed with Tailwind classes
 
 const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
   const carouselRef = useRef(null);
@@ -12,7 +15,7 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [dimensions, setDimensions] = useState({
     slideWidth: carouselSettings.slideWidth,
-    slideHeight: carouselSettings.slideHeight,
+    slideHeight: carouselSettings.slideHeight, // Initial value from settings
     fontScale: 1,
   });
 
@@ -29,13 +32,13 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
         const fontScale = adjustedWidth / fullSlideWidth;
         setDimensions({
           slideWidth: adjustedWidth,
-          slideHeight: (adjustedWidth * 250) / fullSlideWidth,
+          slideHeight: (adjustedWidth * carouselSettings.slideHeight) / fullSlideWidth, // CORRECTED: Use carouselSettings.slideHeight for aspect ratio
           fontScale,
         });
       } else {
         setDimensions({
           slideWidth: fullSlideWidth,
-          slideHeight: (fullSlideWidth * 250) / fullSlideWidth,
+          slideHeight: carouselSettings.slideHeight, // CORRECTED: Use carouselSettings.slideHeight
           fontScale: 1,
         });
       }
@@ -44,7 +47,7 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
-  }, [carouselSettings]);
+  }, [carouselSettings]); // Depend on carouselSettings to re-run if they change
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -131,12 +134,13 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
   };
 
   return (
+    // This outer div will now have the responsive padding
     <div
       onMouseEnter={() => setIsActive(true)}
       onMouseLeave={() => setIsActive(false)}
+      className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20" // Responsive padding applied here
       style={{
         height: "100%",
-        padding: "0.5rem",
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
@@ -185,7 +189,7 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
           style={{
             position: "absolute",
             top: "40%",
-            left: "-1rem",
+            left: "0", // Adjusted from -1rem to 0 (relative to padded parent)
             zIndex: 10,
             fontSize: "2rem",
             background: "transparent",
@@ -202,7 +206,7 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
           style={{
             position: "absolute",
             top: "40%",
-            right: "-1rem",
+            right: "0", // Adjusted from -1rem to 0 (relative to padded parent)
             zIndex: 10,
             fontSize: "2rem",
             background: "transparent",
@@ -217,7 +221,7 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
 
         <div
           ref={carouselRef}
-          className="no-scrollbar"
+          className="no-scrollbar" // Make sure this class is defined in your CSS or via Tailwind plugin
           style={{
             display: "flex",
             overflowX: "auto",
@@ -227,6 +231,9 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
             gap: "1rem",
             paddingBottom: "0.5rem",
             cursor: isDragging ? "grabbing" : "grab",
+            // Padding for the scrollable content
+            paddingLeft: "0", // No padding here, as outer div handles it
+            paddingRight: "0" // No padding here
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -244,12 +251,12 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
                 width: `${dimensions.slideWidth}px`,
                 height: `${dimensions.slideHeight}px`,
                 backgroundColor: step.slideBackgroundColor,
-                padding: "1rem",
+                padding: `${1 * dimensions.fontScale}rem`, // Applied fontScale here
                 borderRadius: "1rem",
                 boxShadow: "0 0 8px rgba(0,0,0,0.08)",
                 display: "flex",
                 flexDirection: "row",
-                gap: "0.75rem",
+                gap: `${0.75 * dimensions.fontScale}rem`, // Applied fontScale here
                 alignItems: "flex-start",
                 position: "relative",
               }}
@@ -257,13 +264,13 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
               <div
                 style={{
                   position: "absolute",
-                  top: "0.5rem",
-                  right: "0.5rem",
+                  top: `${0.5 * dimensions.fontScale}rem`, // Scaled top position
+                  right: `${0.5 * dimensions.fontScale}rem`, // Scaled right position
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.4rem",
+                  gap: `${0.4 * dimensions.fontScale}rem`, // Applied fontScale here
                   background: "#eef4ff",
-                  padding: "0.35rem 0.6rem",
+                  padding: `${0.35 * dimensions.fontScale}rem ${0.6 * dimensions.fontScale}rem`, // Applied fontScale here
                   borderRadius: "1rem",
                   fontSize: `${0.75 * dimensions.fontScale}rem`,
                   fontWeight: 600,
@@ -291,7 +298,7 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
                     fontSize: `${1.1 * dimensions.fontScale}rem`,
                     fontWeight: "bold",
                     color: step.titleColor,
-                    marginBottom: "0.4rem",
+                    marginBottom: `${0.4 * dimensions.fontScale}rem`, // Apply fontScale here
                   }}
                 >
                   {step.title}
@@ -300,7 +307,7 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
                   style={{
                     fontSize: `${0.9 * dimensions.fontScale}rem`,
                     color: step.descriptionColor,
-                    marginBottom: "0.4rem",
+                    marginBottom: `${0.4 * dimensions.fontScale}rem`, // Apply fontScale here
                   }}
                 >
                   {step.description}
@@ -314,10 +321,10 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
                         color: step.checklistColor,
                         display: "flex",
                         alignItems: "center",
-                        marginBottom: "0.25rem",
+                        marginBottom: `${0.25 * dimensions.fontScale}rem`,
                       }}
                     >
-                      <FaCheckCircle style={{ marginRight: "0.5rem" }} />
+                      <FaCheckCircle style={{ marginRight: `${0.5 * dimensions.fontScale}rem` }} /> {/* Apply fontScale here */}
                       {item}
                     </li>
                   ))}
@@ -328,11 +335,11 @@ const StepByStepCarousel = ({ steps, carouselSettings, title }) => {
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar - Now Responsive */}
       <div
         style={{
           width: "100%",
-          maxWidth: "700px",
+          maxWidth: `${700 * dimensions.fontScale}px`, // Adjusted for responsiveness
           margin: "1rem auto 0",
         }}
       >

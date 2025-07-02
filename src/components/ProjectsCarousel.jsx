@@ -6,7 +6,6 @@ const ProjectsCarousel = ({ projects, settings }) => {
   const scrollRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [slideWidth, setSlideWidth] = useState(0);
-  const [slideHeight, setSlideHeight] = useState(0); // Added slideHeight state
   const [fontScale, setFontScale] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -23,59 +22,29 @@ const ProjectsCarousel = ({ projects, settings }) => {
   };
 
   useEffect(() => {
-    // Renamed to updateDimensions for clarity, as it now handles more than just width
-    const updateDimensions = () => {
-      if (containerRef.current && settings) {
+    const updateWidth = () => {
+      if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-
-        // Use settings.slideWidth and settings.slideHeight from the provided settings
-        const baseSlideWidth = settings.slideWidth || 300; // Fallback if not provided
-        const baseSlideHeight = settings.slideHeight || 400; // Fallback if not provided
-        const minimumSlidesToShow = settings.minimumSlidesToShow || 3.8; // Use 3.8 as current default
-
-        const requiredWidthForIdealDisplay = baseSlideWidth * minimumSlidesToShow;
-
-        let adjustedSlideWidth;
-        let calculatedFontScale;
-
-        if (containerWidth < requiredWidthForIdealDisplay) {
-          adjustedSlideWidth = containerWidth / minimumSlidesToShow;
-          calculatedFontScale = adjustedSlideWidth / baseSlideWidth;
-        } else {
-          adjustedSlideWidth = baseSlideWidth;
-          calculatedFontScale = 1;
-        }
-
-        // Optional: Set a minimum font scale to prevent text from becoming unreadable
-        const MIN_FONT_SCALE = 0.7;
-        if (calculatedFontScale < MIN_FONT_SCALE) {
-          calculatedFontScale = MIN_FONT_SCALE;
-        }
-
-        setSlideWidth(adjustedSlideWidth);
-        // Calculate slideHeight to maintain aspect ratio based on adjustedSlideWidth
-        setSlideHeight(adjustedSlideWidth * (baseSlideHeight / baseSlideWidth));
-        setFontScale(calculatedFontScale);
+        const slideW = containerWidth / 3.8;
+        setSlideWidth(slideW);
+        const scale = slideW / (settings.originalSlideWidth || 300);
+        setFontScale(scale);
       }
     };
-
-    updateDimensions();
-    window.addEventListener("resize", updateDimensions);
-    return () => window.removeEventListener("resize", updateDimensions);
-  }, [settings.slideWidth, settings.slideHeight, settings.minimumSlidesToShow]); // Depend on relevant settings properties
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, [settings.originalSlideWidth]);
 
   useEffect(() => {
     const ref = scrollRef.current;
-    if (!ref) return; // Ensure ref is not null
-
     const handleScroll = () => {
       const maxScroll = ref.scrollWidth - ref.clientWidth;
-      // Prevent division by zero if scrollable area is not large enough
-      const percent = maxScroll > 0 ? (ref.scrollLeft / maxScroll) * 100 : 0;
+      const percent = (ref.scrollLeft / maxScroll) * 100;
       setProgress(percent);
     };
-    ref.addEventListener("scroll", handleScroll);
-    return () => ref.removeEventListener("scroll", handleScroll);
+    ref?.addEventListener("scroll", handleScroll);
+    return () => ref?.removeEventListener("scroll", handleScroll);
   }, []);
 
   // 🖱️ Mouse Drag Scroll
@@ -99,9 +68,7 @@ const ProjectsCarousel = ({ projects, settings }) => {
       if (!isDragging) return;
       e.preventDefault();
       const x = e.pageX - slider.offsetLeft;
-      // Use dragSpeed from settings if available, fallback to 1.5
-      const dragSpeed = settings.dragSpeed !== undefined ? settings.dragSpeed : 1.5;
-      const walk = (x - startX) * dragSpeed;
+      const walk = (x - startX) * 1.5;
       slider.scrollLeft = scrollLeft - walk;
     };
 
@@ -116,7 +83,7 @@ const ProjectsCarousel = ({ projects, settings }) => {
       slider.removeEventListener("mouseup", handleMouseUp);
       slider.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [isDragging, startX, scrollLeft, settings.dragSpeed]); // Added dragSpeed dependency
+  }, [isDragging, startX, scrollLeft]);
 
   // 🧭 Scroll by WHEEL (only when hovered)
   useEffect(() => {
@@ -126,29 +93,25 @@ const ProjectsCarousel = ({ projects, settings }) => {
     const handleWheel = (e) => {
       e.preventDefault();
       const scrollAmount = e.deltaY || e.deltaX;
-      // Use scrollSpeed from settings if available, fallback to 1
-      const scrollSpeed = settings.scrollSpeed !== undefined ? settings.scrollSpeed : 1;
-      slider.scrollBy({ left: scrollAmount * scrollSpeed, behavior: "smooth" });
+      slider.scrollBy({ left: scrollAmount, behavior: "smooth" });
     };
 
     slider.addEventListener("wheel", handleWheel, { passive: false });
     return () => slider.removeEventListener("wheel", handleWheel);
-  }, [isActive, settings.scrollSpeed]); // Added scrollSpeed dependency
+  }, [isActive]);
 
   // ⌨️ Scroll by Arrow Keys (only when hovered)
   useEffect(() => {
     if (!isActive) return;
 
     const handleKey = (e) => {
-      // Use keyScrollSpeed if available, fallback to slideWidth
-      const keyScrollAmount = settings.keyScrollSpeed !== undefined ? settings.keyScrollSpeed : slideWidth;
-      if (e.key === "ArrowLeft") scrollRef.current.scrollBy({ left: -keyScrollAmount, behavior: "smooth" });
-      else if (e.key === "ArrowRight") scrollRef.current.scrollBy({ left: keyScrollAmount, behavior: "smooth" });
+      if (e.key === "ArrowLeft") scroll("left");
+      else if (e.key === "ArrowRight") scroll("right");
     };
 
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [isActive, slideWidth, settings.keyScrollSpeed]); // Added keyScrollSpeed dependency
+  }, [isActive, slideWidth]);
 
   return (
     <section
@@ -195,20 +158,20 @@ const ProjectsCarousel = ({ projects, settings }) => {
                 className="relative flex-shrink-0 rounded-xl overflow-hidden shadow-md select-none"
                 style={{
                   width: `${slideWidth}px`,
-                  height: `${slideHeight}px`, // Apply dynamic height here
                   scrollSnapAlign: "start",
                   backgroundColor: project.bgColor || "#f0f0f0",
                 }}
               >
-                {/* Removed aspect-[3/4] as height is now dynamic from slideHeight */}
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="w-full h-full object-cover transition-opacity duration-300 rounded-2xl pointer-events-none"
-                  onError={(e) => {
-                    e.target.style.opacity = 0.1;
-                  }}
-                />
+                <div className="aspect-[3/4] w-full">
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover transition-opacity duration-300 rounded-2xl pointer-events-none"
+                    onError={(e) => {
+                      e.target.style.opacity = 0.1;
+                    }}
+                  />
+                </div>
                 <div
                   className={`absolute inset-0 bg-opacity-40 flex ${
                     index % 2 === 0 ? "items-end" : "items-start"
@@ -226,21 +189,11 @@ const ProjectsCarousel = ({ projects, settings }) => {
           </div>
         </div>
 
-        {/* Progress Bar - Now Responsive and Centered */}
-        <div
-          style={{
-            width: "100%", // Takes full width of its parent (which has padding)
-            // Calculate maxWidth based on the scaled slide width and number of slides displayed
-            maxWidth: `${slideWidth * (settings.minimumSlidesToShow || 3.8) * 0.9}px`, // Example: 90% of the visual slide width
-            margin: "1rem auto 0", // Centers the progress bar horizontally
-          }}
-        >
-          <div className="h-1 bg-gray-200 mt-3 rounded">
-            <div
-              className="h-1 bg-green-700 rounded"
-              style={{ width: `${progress}%`, transition: "width 0.3s ease" }}
-            ></div>
-          </div>
+        <div className="h-1 bg-gray-200 mt-3 rounded">
+          <div
+            className="h-1 bg-green-700 rounded"
+            style={{ width: `${progress}%`, transition: "width 0.3s ease" }}
+          ></div>
         </div>
       </div>
     </section>
